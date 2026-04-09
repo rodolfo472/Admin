@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel - Gelatinas 🍧</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  display:flex;
+}
+
+/* MENU LATERAL */
+.sidebar{
+  width:80px;
+  background:#4a90e2;
+  color:white;
+  height:100vh;
+  padding:10px;
+}
+
+.sidebar button{
+  display:block;
+  margin:10px 0;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:white;
+  cursor:pointer;
+}
+
+/* CONTEÚDO */
+.content{
+  flex:1;
+  padding:20px;
+  background:#f5f5f5;
+}
+
+/* CARD */
+.card{
+  background:white;
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:10px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.status{
+  font-size:12px;
+  color:gray;
+}
+
+.btn{
+  margin-top:10px;
+  padding:8px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.entregar{ background:green; color:white; }
+.remover{ background:red; color:white; }
+
+</style>
+</head>
+
+<body>
+
+<!-- MENU -->
+<div class="sidebar">
+  <button onclick="mostrar('pedidos')">📦</button>
+  <button onclick="mostrar('entregues')">✅</button>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="content">
+
+  <h2>Pedidos</h2>
+
+  <div id="pedidos"></div>
+
+</div>
+
+<script>
+
+function mostrar(tipo){
+  carregar(tipo);
+}
+
+function carregar(tipo="pedidos"){
+  let lista = document.getElementById("pedidos");
+  lista.innerHTML="";
+
+  let dados = JSON.parse(localStorage.getItem("pedidos")) || [];
+
+  dados.forEach((p, i)=>{
+
+    if(tipo=="pedidos" && p.status=="Entregue") return;
+    if(tipo=="entregues" && p.status!="Entregue") return;
+
+    let div = document.createElement("div");
+    div.className="card";
+
+    div.innerHTML = `
+      <b>${p.nome}</b><br>
+      ${p.sabores.join(", ")}<br>
+      ${p.horario}<br>
+      <span class="status">${p.status}</span>
+      <br>
+      <button class="btn entregar" onclick="entregar(${i})">Entregar</button>
+      <button class="btn remover" onclick="remover(${i})">Excluir</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+function entregar(i){
+  let dados = JSON.parse(localStorage.getItem("pedidos")) || [];
+  dados[i].status = "Entregue";
+  localStorage.setItem("pedidos", JSON.stringify(dados));
+  carregar();
+}
+
+function remover(i){
+  let dados = JSON.parse(localStorage.getItem("pedidos")) || [];
+  dados.splice(i,1);
+  localStorage.setItem("pedidos", JSON.stringify(dados));
+  carregar();
+}
+
+carregar();
+
+</script>
+
+</body>
+</html>
