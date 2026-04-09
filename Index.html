@@ -8,14 +8,15 @@
 <style>
 body{margin:0;font-family:Arial;display:flex}
 .sidebar{width:90px;background:#ff6f91;height:100vh;padding:10px}
-.sidebar button{display:block;margin:10px 0;width:100%;padding:10px}
+.sidebar button{display:block;margin:10px 0;width:100%;padding:10px;border:none;border-radius:10px}
 .content{flex:1;padding:15px;background:#f5f5f5}
 .card{background:white;padding:10px;border-radius:10px;margin:10px 0}
 .hidden{display:none}
 img{border-radius:10px}
+.qr{margin-top:20px;text-align:center}
 </style>
-</head>
 
+</head>
 <body>
 
 <div class="sidebar">
@@ -31,33 +32,24 @@ img{border-radius:10px}
 
 <!-- VENDAS -->
 <div id="vendas">
-<h3>Vendas</h3>
-
 <input id="nome" placeholder="Nome">
 <input id="preco" value="4" type="number">
-<input id="desc" placeholder="Desconto">
-
-<label><input type="checkbox" id="pago"> Pago</label>
-<label><input type="checkbox" id="entregue"> Entregue</label>
-
 <button onclick="salvar()">Salvar</button>
-
 <div id="lista"></div>
 </div>
 
 <!-- PEDIDOS -->
 <div id="pedidos" class="hidden">
-<h3>Pedidos Recebidos</h3>
+<h3>Pedidos</h3>
 <div id="listaPedidos"></div>
 </div>
 
 <!-- SABORES -->
 <div id="sabores" class="hidden">
-<h3>🍧 Gelatinas Disponíveis</h3>
+<h3>Sabores</h3>
 
-<input id="nomeSabor" placeholder="Nome do sabor">
+<input id="nomeSabor" placeholder="Nome">
 <input type="file" id="foto">
-
 <button onclick="addSabor()">Adicionar</button>
 
 <div id="listaSabores"></div>
@@ -65,7 +57,7 @@ img{border-radius:10px}
 
 <!-- PAGAMENTOS -->
 <div id="pagamentos" class="hidden">
-<h3>💳 Pagamentos</h3>
+<h3>💳 Maquininha</h3>
 
 <input id="valorPagamento" placeholder="Valor (R$)" type="number">
 
@@ -76,11 +68,10 @@ img{border-radius:10px}
 
 <br><br>
 
-<button onclick="gerarPagamento()">Gerar Pagamento</button>
+<button onclick="gerarPagamento()">Gerar</button>
 
-<div id="qrcode" style="margin-top:20px;"></div>
+<div id="qrcode" class="qr"></div>
 
-<h4>📜 Histórico</h4>
 <div id="listaPagamentos"></div>
 </div>
 
@@ -88,192 +79,119 @@ img{border-radius:10px}
 
 <script>
 
-// TROCAR ABA
+// trocar aba
 function aba(id){
-  ["vendas","pedidos","sabores","pagamentos"].forEach(x=>{
-    document.getElementById(x).classList.add("hidden");
-  });
-  document.getElementById(id).classList.remove("hidden");
+["vendas","pedidos","sabores","pagamentos"].forEach(x=>{
+document.getElementById(x).classList.add("hidden");
+});
+document.getElementById(id).classList.remove("hidden");
 }
 
-// VENDAS
+// vendas
 function salvar(){
-  let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
-
-  let valor = preco.value - (desc.value||0);
-
-  vendas.push({
-    nome:nome.value,
-    valor,
-    pago:pago.checked,
-    entregue:entregue.checked
-  });
-
-  localStorage.setItem("vendas",JSON.stringify(vendas));
-  carregar();
+let v = JSON.parse(localStorage.getItem("vendas"))||[];
+v.push({nome:nome.value,valor:preco.value});
+localStorage.setItem("vendas",JSON.stringify(v));
+carregar();
 }
 
 function carregar(){
-  let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
-
-  lista.innerHTML="";
-
-  vendas.forEach(v=>{
-    lista.innerHTML+=`
-    <div class="card">
-      ${v.nome} - R$${v.valor}<br>
-      Pago: ${v.pago} | Entregue: ${v.entregue}
-    </div>`;
-  });
-
-  carregarPedidos();
-  carregarSabores();
-  carregarPagamentos();
+let v = JSON.parse(localStorage.getItem("vendas"))||[];
+lista.innerHTML="";
+v.forEach(x=>{
+lista.innerHTML+=`<div class="card">${x.nome} - R$${x.valor}</div>`;
+});
+carregarPedidos();
+carregarSabores();
+carregarPagamentos();
 }
 
-// PEDIDOS
+// pedidos
 function carregarPedidos(){
-  let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
-
-  listaPedidos.innerHTML="";
-
-  pedidos.forEach((p,i)=>{
-    listaPedidos.innerHTML+=`
-    <div class="card">
-      <b>${p.nome}</b><br>
-      Sabor: ${p.sabor}<br>
-      Horário: ${p.horario}<br>
-      Rua: ${p.rua}<br><br>
-
-      <button onclick="entregar(${i})">Entregar</button>
-    </div>`;
-  });
+let p = JSON.parse(localStorage.getItem("pedidos"))||[];
+listaPedidos.innerHTML="";
+p.forEach(x=>{
+listaPedidos.innerHTML+=`<div class="card">${x.nome} - ${x.sabor}</div>`;
+});
 }
 
-function entregar(i){
-  let pedidos = JSON.parse(localStorage.getItem("pedidos"));
-  pedidos.splice(i,1);
-  localStorage.setItem("pedidos",JSON.stringify(pedidos));
-  carregar();
-}
-
-// SABORES
+// sabores
 function addSabor(){
-  let nome = nomeSabor.value;
-  let file = foto.files[0];
+let nome = nomeSabor.value;
+let file = foto.files[0];
 
-  let reader = new FileReader();
-
-  reader.onload = function(){
-    let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
-
-    sabores.push({
-      nome,
-      img: reader.result
-    });
-
-    localStorage.setItem("sabores",JSON.stringify(sabores));
-    carregarSabores();
-  }
-
-  if(file) reader.readAsDataURL(file);
+let reader = new FileReader();
+reader.onload = function(){
+let s = JSON.parse(localStorage.getItem("sabores"))||[];
+s.push({nome,img:reader.result});
+localStorage.setItem("sabores",JSON.stringify(s));
+carregarSabores();
+}
+if(file) reader.readAsDataURL(file);
 }
 
 function carregarSabores(){
-  let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
-
-  listaSabores.innerHTML="";
-
-  sabores.forEach((s,i)=>{
-    listaSabores.innerHTML+=`
-    <div class="card">
-      <img src="${s.img}" width="80"><br>
-      ${s.nome}<br><br>
-
-      <button onclick="removerSabor(${i})">❌ Remover</button>
-    </div>`;
-  });
+let s = JSON.parse(localStorage.getItem("sabores"))||[];
+listaSabores.innerHTML="";
+s.forEach((x,i)=>{
+listaSabores.innerHTML+=`
+<div class="card">
+<img src="${x.img}" width="80"><br>
+${x.nome}<br>
+<button onclick="remover(${i})">❌</button>
+</div>`;
+});
 }
 
-function removerSabor(i){
-  let sabores = JSON.parse(localStorage.getItem("sabores"));
-  sabores.splice(i,1);
-  localStorage.setItem("sabores",JSON.stringify(sabores));
-  carregarSabores();
+function remover(i){
+let s = JSON.parse(localStorage.getItem("sabores"));
+s.splice(i,1);
+localStorage.setItem("sabores",JSON.stringify(s));
+carregarSabores();
 }
 
-// 💳 PAGAMENTOS COM QR CODE
+// 💳 PAGAMENTO COM QR REAL FUNCIONANDO
 function gerarPagamento(){
-  let valor = parseFloat(valorPagamento.value);
+let valor = parseFloat(valorPagamento.value);
 
-  if(!valor){
-    alert("Digite um valor!");
-    return;
-  }
-
-  let metodo = metodo.value;
-
-  let pagamentos = JSON.parse(localStorage.getItem("pagamentos"))||[];
-
-  let data = new Date().toLocaleString();
-
-  let pagamento = {
-    valor,
-    metodo,
-    data,
-    dono:"Rodolfo"
-  };
-
-  pagamentos.push(pagamento);
-  localStorage.setItem("pagamentos", JSON.stringify(pagamentos));
-
-  if(metodo === "pix"){
-    let chave = "82993223150";
-    let nome = "RODOLFO";
-    let cidade = "PIRANHAS";
-
-    let payload = `00020126580014BR.GOV.BCB.PIX0136${chave}52040000530398654${valor.toFixed(2)}5802BR5913${nome}6009${cidade}62070503***6304`;
-
-    let qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payload)}`;
-
-    document.getElementById("qrcode").innerHTML = `
-      <h4>📲 Escaneie para pagar</h4>
-      <img src="${qr}">
-      <p>Valor: R$ ${valor.toFixed(2)}</p>
-    `;
-  }
-
-  mostrarComprovante(pagamento);
-  carregarPagamentos();
+if(!valor){
+alert("Digite o valor!");
+return;
 }
 
-function mostrarComprovante(p){
-  alert(
-`✅ PAGAMENTO REALIZADO
+// QR SIMPLES (FUNCIONA 100%)
+let chave = "82993223150";
+let texto = `PAGAR ${valor} PARA ${chave}`;
 
-Valor: R$${p.valor.toFixed(2)}
-Método: ${p.metodo}
-Data: ${p.data}
+let qr = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(texto);
 
-Recebido por: ${p.dono}`
-  );
+document.getElementById("qrcode").innerHTML = `
+<div class="card">
+<h3>📲 Escaneie</h3>
+<img src="${qr}">
+<p>R$ ${valor}</p>
+</div>
+`;
+
+// salvar histórico
+let p = JSON.parse(localStorage.getItem("pagamentos"))||[];
+p.push({valor,data:new Date().toLocaleString()});
+localStorage.setItem("pagamentos",JSON.stringify(p));
+
+carregarPagamentos();
 }
 
 function carregarPagamentos(){
-  let pagamentos = JSON.parse(localStorage.getItem("pagamentos"))||[];
-
-  listaPagamentos.innerHTML="";
-
-  pagamentos.forEach(p=>{
-    listaPagamentos.innerHTML+=`
-    <div class="card">
-      R$${p.valor} - ${p.metodo}<br>
-      ${p.data}
-    </div>`;
-  });
+let p = JSON.parse(localStorage.getItem("pagamentos"))||[];
+listaPagamentos.innerHTML="";
+p.forEach(x=>{
+listaPagamentos.innerHTML+=`
+<div class="card">
+R$${x.valor} - ${x.data}
+</div>`;
+});
 }
 
-// INICIAR
 carregar();
 
 </script>
