@@ -12,6 +12,7 @@ body{margin:0;font-family:Arial;display:flex}
 .content{flex:1;padding:15px;background:#f5f5f5}
 .card{background:white;padding:10px;border-radius:10px;margin:10px 0}
 .hidden{display:none}
+img{border-radius:10px}
 </style>
 </head>
 
@@ -25,11 +26,12 @@ body{margin:0;font-family:Arial;display:flex}
 
 <div class="content">
 
-<h2>Admin - Gelatinas 🍧</h2>
+<h2>Admin - Gelatinas do Rodolfo 🍧</h2>
 
 <!-- VENDAS -->
 <div id="vendas">
 <h3>Vendas</h3>
+
 <input id="nome" placeholder="Nome">
 <input id="preco" value="4" type="number">
 <input id="desc" placeholder="Desconto">
@@ -44,7 +46,7 @@ body{margin:0;font-family:Arial;display:flex}
 
 <!-- PEDIDOS -->
 <div id="pedidos" class="hidden">
-<h3>Pedidos</h3>
+<h3>Pedidos Recebidos</h3>
 <div id="listaPedidos"></div>
 </div>
 
@@ -64,7 +66,7 @@ body{margin:0;font-family:Arial;display:flex}
 
 <script>
 
-// trocar aba
+// TROCAR ABA
 function aba(id){
   ["vendas","pedidos","sabores"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
@@ -91,12 +93,14 @@ function salvar(){
 
 function carregar(){
   let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
+
   lista.innerHTML="";
 
   vendas.forEach(v=>{
     lista.innerHTML+=`
     <div class="card">
-    ${v.nome} - R$${v.valor}
+      ${v.nome} - R$${v.valor}<br>
+      Pago: ${v.pago} | Entregue: ${v.entregue}
     </div>`;
   });
 
@@ -104,21 +108,33 @@ function carregar(){
   carregarSabores();
 }
 
-// PEDIDOS
+// PEDIDOS (SITE CLIENTE ENVIA PRA CÁ)
 function carregarPedidos(){
   let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
 
   listaPedidos.innerHTML="";
 
-  pedidos.forEach(p=>{
+  pedidos.forEach((p,i)=>{
     listaPedidos.innerHTML+=`
     <div class="card">
-    ${p.nome} - ${p.sabor} - ${p.horario}
+      <b>${p.nome}</b><br>
+      Sabor: ${p.sabor}<br>
+      Horário: ${p.horario}<br>
+      Rua: ${p.rua}<br><br>
+
+      <button onclick="entregar(${i})">Marcar como Entregue</button>
     </div>`;
   });
 }
 
-// SABORES (NOVO)
+function entregar(i){
+  let pedidos = JSON.parse(localStorage.getItem("pedidos"));
+  pedidos.splice(i,1);
+  localStorage.setItem("pedidos",JSON.stringify(pedidos));
+  carregar();
+}
+
+// SABORES (ADICIONAR)
 function addSabor(){
   let nome = nomeSabor.value;
   let file = foto.files[0];
@@ -140,20 +156,32 @@ function addSabor(){
   if(file) reader.readAsDataURL(file);
 }
 
+// SABORES (CARREGAR + REMOVER)
 function carregarSabores(){
   let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
 
   listaSabores.innerHTML="";
 
-  sabores.forEach(s=>{
+  sabores.forEach((s,i)=>{
     listaSabores.innerHTML+=`
     <div class="card">
       <img src="${s.img}" width="80"><br>
-      ${s.nome}
+      ${s.nome}<br><br>
+
+      <button onclick="removerSabor(${i})">❌ Remover</button>
     </div>`;
   });
 }
 
+// REMOVER SABOR
+function removerSabor(i){
+  let sabores = JSON.parse(localStorage.getItem("sabores"));
+  sabores.splice(i,1);
+  localStorage.setItem("sabores",JSON.stringify(sabores));
+  carregarSabores();
+}
+
+// INICIAR
 carregar();
 
 </script>
