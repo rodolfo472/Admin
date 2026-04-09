@@ -6,40 +6,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;display:flex}
-.login{display:flex;justify-content:center;align-items:center;height:100vh;background:#ff6f91}
-.box{background:white;padding:20px;border-radius:15px}
-.sidebar{width:90px;background:#ff6f91;height:100vh;padding:10px}
-.sidebar button{display:block;margin:10px 0;width:100%;padding:10px}
-.content{flex:1;padding:15px;background:#f5f5f5}
-.card{background:white;padding:10px;border-radius:10px;margin:10px 0}
-.hidden{display:none}
-</style>
+body{
+  margin:0;
+  font-family:Arial;
+  display:flex;
+}
 
+/* MENU LATERAL */
+.sidebar{
+  width:80px;
+  background:#ff6f91;
+  height:100vh;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.sidebar button{
+  margin:10px 0;
+  padding:10px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+/* ÁREA PRINCIPAL */
+.main{
+  flex:1;
+  display:flex;
+}
+
+/* CONTEÚDO GRANDE */
+.content{
+  flex:1;
+  padding:20px;
+  background:#f5f5f5;
+}
+
+/* CARDS */
+.card{
+  background:white;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px;
+}
+
+/* ESCONDER */
+.hidden{
+  display:none;
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="login" class="login">
-  <div class="box">
-    <h2>🔐 Login</h2>
-    <input type="password" id="senha" placeholder="Senha">
-    <button onclick="entrar()">Entrar</button>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" class="hidden">
-
+<!-- MENU ESQUERDO -->
 <div class="sidebar">
-<button onclick="aba('vendas')">💰</button>
-<button onclick="aba('naoEntregue')">🚚</button>
-<button onclick="aba('naoPago')">❌</button>
-<button onclick="aba('promo')">🎁</button>
-<button onclick="aba('pedidos')">📦</button>
-<button onclick="telaCheia()">🖥️</button>
+  <button onclick="abrir('vendas')">💰</button>
+  <button onclick="abrir('pedidos')">📦</button>
+  <button onclick="abrir('promo')">🎁</button>
+  <button onclick="abrir('nao')">🚚</button>
 </div>
+
+<!-- ÁREA DIREITA -->
+<div class="main">
 
 <div class="content">
 
@@ -47,42 +80,17 @@ body{margin:0;font-family:Arial;display:flex}
 
 <!-- VENDAS -->
 <div id="vendas">
-<h3 id="data"></h3>
-
+<h3>Vendas</h3>
 <input id="nome" placeholder="Nome">
 <input id="preco" value="4" type="number">
-<input id="desconto" placeholder="Desconto (ex: 0.50)" type="number">
+<input id="desc" placeholder="Desconto">
 
 <label><input type="checkbox" id="pago"> Pago</label>
 <label><input type="checkbox" id="entregue"> Entregue</label>
 
-<button onclick="salvarVenda()">Salvar</button>
+<button onclick="salvar()">Salvar</button>
 
-<div id="listaVendas"></div>
-</div>
-
-<!-- NÃO ENTREGUES -->
-<div id="naoEntregue" class="hidden">
-<h3>Não Entregues</h3>
-<div id="listaNaoEntregue"></div>
-</div>
-
-<!-- NÃO PAGOS -->
-<div id="naoPago" class="hidden">
-<h3>Não Pagaram</h3>
-<div id="listaNaoPago"></div>
-</div>
-
-<!-- PROMOÇÕES -->
-<div id="promo" class="hidden">
-<h3>Promoções</h3>
-
-<input type="date" id="dataPromo">
-<input type="number" id="porc" placeholder="%">
-
-<button onclick="criarPromo()">Criar</button>
-
-<div id="listaPromo"></div>
+<div id="lista"></div>
 </div>
 
 <!-- PEDIDOS -->
@@ -91,51 +99,43 @@ body{margin:0;font-family:Arial;display:flex}
 <div id="listaPedidos"></div>
 </div>
 
+<!-- PROMO -->
+<div id="promo" class="hidden">
+<h3>Promoções</h3>
+
+<input type="date" id="data">
+<input type="number" id="porc" placeholder="%">
+
+<button onclick="promo()">Criar</button>
+
+<div id="listaPromo"></div>
 </div>
+
+<!-- NÃO ENTREGUE -->
+<div id="nao" class="hidden">
+<h3>Não Entregues</h3>
+<div id="listaNao"></div>
+</div>
+
+</div>
+
 </div>
 
 <script>
 
-// LOGIN
-function entrar(){
-  if(senha.value==="rodolfo408*"){
-    localStorage.setItem("logado","sim");
-    iniciar();
-  }else alert("Senha errada");
-}
-
-function iniciar(){
-  login.style.display="none";
-  app.classList.remove("hidden");
-}
-
-if(localStorage.getItem("logado")) iniciar();
-
-// DATA
-data.innerText="Vendas de Hoje - "+new Date().toLocaleDateString();
-
-// TROCAR ABA
-function aba(id){
-  ["vendas","naoEntregue","naoPago","promo","pedidos"].forEach(x=>{
+// TROCAR TELA
+function abrir(id){
+  ["vendas","pedidos","promo","nao"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
 }
 
-// TELA CHEIA
-function telaCheia(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen();
-  }else{
-    document.exitFullscreen();
-  }
-}
-
 // VENDAS
-function salvarVenda(){
+function salvar(){
   let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
 
-  let valor = parseFloat(preco.value) - (parseFloat(desconto.value)||0);
+  let valor = preco.value - (desc.value||0);
 
   vendas.push({
     nome:nome.value,
@@ -151,98 +151,68 @@ function salvarVenda(){
 function carregar(){
   let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
 
-  listaVendas.innerHTML="";
-  listaNaoEntregue.innerHTML="";
-  listaNaoPago.innerHTML="";
+  lista.innerHTML="";
+  listaNao.innerHTML="";
 
   vendas.forEach((v,i)=>{
-
-    let c = `<div class="card">
-    ${v.nome} - R$${v.valor.toFixed(2)}<br>
+    lista.innerHTML+=`
+    <div class="card">
+    ${v.nome} - R$${v.valor}<br>
     Pago: ${v.pago} | Entregue: ${v.entregue}
     </div>`;
 
-    listaVendas.innerHTML+=c;
-
     if(!v.entregue){
-      listaNaoEntregue.innerHTML+=`
-      <div class="card">
-      ${v.nome}
-      <button onclick="entregar(${i})">Entregar</button>
-      </div>`;
+      listaNao.innerHTML+=`
+      <div class="card">${v.nome}</div>`;
     }
-
-    if(!v.pago){
-      listaNaoPago.innerHTML+=`
-      <div class="card">
-      ${v.nome}
-      </div>`;
-    }
-
   });
 
   carregarPedidos();
 }
 
-function entregar(i){
-  let vendas = JSON.parse(localStorage.getItem("vendas"));
-  vendas[i].entregue=true;
-  localStorage.setItem("vendas",JSON.stringify(vendas));
-  carregar();
-}
-
-// PROMO
-function criarPromo(){
-  let promo = JSON.parse(localStorage.getItem("promo"))||[];
-
-  let desconto = 4*(porc.value/100);
-
-  promo.push({
-    data:dataPromo.value,
-    porc:porc.value,
-    desconto
-  });
-
-  localStorage.setItem("promo",JSON.stringify(promo));
-  carregarPromo();
-}
-
-function carregarPromo(){
-  let promo = JSON.parse(localStorage.getItem("promo"))||[];
-  listaPromo.innerHTML="";
-
-  promo.forEach(p=>{
-    listaPromo.innerHTML+=`
-    <div class="card">
-    ${p.data} - ${p.porc}% (R$${p.desconto.toFixed(2)})
-    </div>`;
-  });
-}
-
-// PEDIDOS (simulado)
+// PEDIDOS
 function carregarPedidos(){
   let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
 
   listaPedidos.innerHTML="";
 
-  pedidos.forEach((p,i)=>{
+  pedidos.forEach(p=>{
     listaPedidos.innerHTML+=`
     <div class="card">
-    ${p.nome} - ${p.horario}<br>
-    ${p.sabores.join(", ")}<br>
-    <button onclick="finalizarPedido(${i})">Entregar</button>
+    ${p.nome} - ${p.horario}
     </div>`;
   });
 }
 
-function finalizarPedido(i){
-  let pedidos = JSON.parse(localStorage.getItem("pedidos"));
-  pedidos.splice(i,1);
-  localStorage.setItem("pedidos",JSON.stringify(pedidos));
-  carregar();
+// PROMO
+function promo(){
+  let p = JSON.parse(localStorage.getItem("promo"))||[];
+
+  let desconto = 4*(porc.value/100);
+
+  p.push({
+    data:data.value,
+    porc:porc.value,
+    desconto
+  });
+
+  localStorage.setItem("promo",JSON.stringify(p));
+  carregarPromo();
 }
 
-// INICIAR
+function carregarPromo(){
+  let p = JSON.parse(localStorage.getItem("promo"))||[];
+
+  listaPromo.innerHTML="";
+
+  p.forEach(x=>{
+    listaPromo.innerHTML+=`
+    <div class="card">
+    ${x.data} - ${x.porc}% (R$${x.desconto})
+    </div>`;
+  });
+}
+
 carregar();
 carregarPromo();
 
