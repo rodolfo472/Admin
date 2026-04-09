@@ -2,111 +2,48 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Gelatinas Coloridas 🍧</title>
+<title>Gelatinas 🍧</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-}
-
-/* LOGIN */
-.login{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  background:#ff6f91;
-}
-
-.login-box{
-  background:white;
-  padding:20px;
-  border-radius:15px;
-  width:250px;
-  text-align:center;
-}
-
-input{
-  width:100%;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* APP */
-.app{
-  display:none;
-}
-
-.sidebar{
-  width:90px;
-  background:#ff6f91;
-  color:white;
-  height:100vh;
-  padding:10px;
-  float:left;
-}
-
-.sidebar button{
-  display:block;
-  width:100%;
-  margin:10px 0;
-  padding:10px;
-}
-
-.content{
-  margin-left:90px;
-  padding:15px;
-  background:#f5f5f5;
-  min-height:100vh;
-}
-
-.card{
-  background:white;
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:10px;
-}
-
-.hidden{ display:none; }
-
+body{margin:0;font-family:Arial;display:flex}
+.login{display:flex;justify-content:center;align-items:center;height:100vh;background:#ff6f91}
+.box{background:white;padding:20px;border-radius:15px}
+.sidebar{width:90px;background:#ff6f91;height:100vh;padding:10px}
+.sidebar button{display:block;margin:10px 0;width:100%;padding:10px}
+.content{flex:1;padding:15px;background:#f5f5f5}
+.card{background:white;padding:10px;border-radius:10px;margin:10px 0}
+.hidden{display:none}
 </style>
+
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div class="login" id="login">
-  <div class="login-box">
-    <h2>🔐 Acesso</h2>
-    <input type="password" id="senha" placeholder="Digite a senha">
+<div id="login" class="login">
+  <div class="box">
+    <h2>🔐 Login</h2>
+    <input type="password" id="senha" placeholder="Senha">
     <button onclick="entrar()">Entrar</button>
   </div>
 </div>
 
 <!-- APP -->
-<div class="app" id="app">
+<div id="app" class="hidden">
 
 <div class="sidebar">
-  <button onclick="trocar('vendas')">💰</button>
-  <button onclick="trocar('nao')">🚚</button>
-  <button onclick="trocar('produtos')">🛍️</button>
-  <button onclick="trocar('promo')">🎁</button>
+<button onclick="aba('vendas')">💰</button>
+<button onclick="aba('naoEntregue')">🚚</button>
+<button onclick="aba('naoPago')">❌</button>
+<button onclick="aba('promo')">🎁</button>
+<button onclick="aba('pedidos')">📦</button>
+<button onclick="telaCheia()">🖥️</button>
 </div>
 
 <div class="content">
 
-<h2>Gelatinas Coloridas do Rodolfo 🍧</h2>
+<h2>Gelatinas do Rodolfo 🍧</h2>
 
 <!-- VENDAS -->
 <div id="vendas">
@@ -125,33 +62,33 @@ button{
 </div>
 
 <!-- NÃO ENTREGUES -->
-<div id="nao" class="hidden">
+<div id="naoEntregue" class="hidden">
 <h3>Não Entregues</h3>
-<div id="listaNao"></div>
+<div id="listaNaoEntregue"></div>
 </div>
 
-<!-- PRODUTOS -->
-<div id="produtos" class="hidden">
-<h3>Produtos</h3>
-
-<input id="nomeProd" placeholder="Nome">
-<input id="precoProd" value="4" type="number">
-
-<button onclick="addProduto()">Adicionar</button>
-
-<div id="listaProdutos"></div>
+<!-- NÃO PAGOS -->
+<div id="naoPago" class="hidden">
+<h3>Não Pagaram</h3>
+<div id="listaNaoPago"></div>
 </div>
 
-<!-- PROMO -->
+<!-- PROMOÇÕES -->
 <div id="promo" class="hidden">
 <h3>Promoções</h3>
 
 <input type="date" id="dataPromo">
-<input type="number" id="porcentagem" placeholder="%">
+<input type="number" id="porc" placeholder="%">
 
-<button onclick="addPromo()">Criar</button>
+<button onclick="criarPromo()">Criar</button>
 
 <div id="listaPromo"></div>
+</div>
+
+<!-- PEDIDOS -->
+<div id="pedidos" class="hidden">
+<h3>Pedidos</h3>
+<div id="listaPedidos"></div>
 </div>
 
 </div>
@@ -159,151 +96,154 @@ button{
 
 <script>
 
-// 🔐 LOGIN
+// LOGIN
 function entrar(){
-  let senha = document.getElementById("senha").value;
-
-  if(senha === "rodolfo408*"){
+  if(senha.value==="rodolfo408*"){
     localStorage.setItem("logado","sim");
     iniciar();
-  }else{
-    alert("Senha errada!");
-  }
+  }else alert("Senha errada");
 }
 
 function iniciar(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
+  login.style.display="none";
+  app.classList.remove("hidden");
 }
 
-// se já estiver logado
-if(localStorage.getItem("logado") === "sim"){
-  iniciar();
-}
+if(localStorage.getItem("logado")) iniciar();
 
 // DATA
-document.getElementById("data").innerText =
-"Vendas de Hoje - " + new Date().toLocaleDateString();
+data.innerText="Vendas de Hoje - "+new Date().toLocaleDateString();
 
 // TROCAR ABA
-function trocar(id){
-  ["vendas","nao","produtos","promo"].forEach(x=>{
+function aba(id){
+  ["vendas","naoEntregue","naoPago","promo","pedidos"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
 }
 
+// TELA CHEIA
+function telaCheia(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  }else{
+    document.exitFullscreen();
+  }
+}
+
 // VENDAS
 function salvarVenda(){
-  let nome = nome.value;
-  let preco = parseFloat(preco.value);
-  let desconto = parseFloat(desconto.value) || 0;
+  let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
 
-  let final = preco - desconto;
-
-  let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+  let valor = parseFloat(preco.value) - (parseFloat(desconto.value)||0);
 
   vendas.push({
-    nome,
-    valor: final,
-    pago: pago.checked,
-    entregue: entregue.checked
+    nome:nome.value,
+    valor,
+    pago:pago.checked,
+    entregue:entregue.checked
   });
 
-  localStorage.setItem("vendas", JSON.stringify(vendas));
+  localStorage.setItem("vendas",JSON.stringify(vendas));
   carregar();
 }
 
 function carregar(){
-  let vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+  let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
 
   listaVendas.innerHTML="";
-  listaNao.innerHTML="";
+  listaNaoEntregue.innerHTML="";
+  listaNaoPago.innerHTML="";
 
   vendas.forEach((v,i)=>{
 
-    let div = document.createElement("div");
-    div.className="card";
-    div.innerHTML = `
-      ${v.nome} - R$${v.valor.toFixed(2)}<br>
-      Pago: ${v.pago} | Entregue: ${v.entregue}
-    `;
+    let c = `<div class="card">
+    ${v.nome} - R$${v.valor.toFixed(2)}<br>
+    Pago: ${v.pago} | Entregue: ${v.entregue}
+    </div>`;
 
-    listaVendas.appendChild(div);
+    listaVendas.innerHTML+=c;
 
     if(!v.entregue){
-      let d2 = document.createElement("div");
-      d2.className="card";
-      d2.innerHTML = `
-        ${v.nome} - R$${v.valor.toFixed(2)}
-        <br>
-        <button onclick="entregar(${i})">Entregar</button>
-      `;
-      listaNao.appendChild(d2);
+      listaNaoEntregue.innerHTML+=`
+      <div class="card">
+      ${v.nome}
+      <button onclick="entregar(${i})">Entregar</button>
+      </div>`;
+    }
+
+    if(!v.pago){
+      listaNaoPago.innerHTML+=`
+      <div class="card">
+      ${v.nome}
+      </div>`;
     }
 
   });
+
+  carregarPedidos();
 }
 
 function entregar(i){
   let vendas = JSON.parse(localStorage.getItem("vendas"));
-  vendas[i].entregue = true;
-  localStorage.setItem("vendas", JSON.stringify(vendas));
+  vendas[i].entregue=true;
+  localStorage.setItem("vendas",JSON.stringify(vendas));
   carregar();
 }
 
-// PRODUTOS
-function addProduto(){
-  let nome = nomeProd.value;
-  let preco = precoProd.value;
-
-  let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
-
-  produtos.push({nome,preco});
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-  carregarProdutos();
-}
-
-function carregarProdutos(){
-  let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
-  listaProdutos.innerHTML="";
-
-  produtos.forEach(p=>{
-    let div = document.createElement("div");
-    div.className="card";
-    div.innerText = `${p.nome} - R$${p.preco}`;
-    listaProdutos.appendChild(div);
-  });
-}
-
 // PROMO
-function addPromo(){
-  let data = dataPromo.value;
-  let porc = porcentagem.value;
+function criarPromo(){
+  let promo = JSON.parse(localStorage.getItem("promo"))||[];
 
-  let desconto = 4 * (porc/100);
+  let desconto = 4*(porc.value/100);
 
-  let promo = JSON.parse(localStorage.getItem("promo")) || [];
+  promo.push({
+    data:dataPromo.value,
+    porc:porc.value,
+    desconto
+  });
 
-  promo.push({data,porc,desconto});
-  localStorage.setItem("promo", JSON.stringify(promo));
+  localStorage.setItem("promo",JSON.stringify(promo));
   carregarPromo();
 }
 
 function carregarPromo(){
-  let promo = JSON.parse(localStorage.getItem("promo")) || [];
+  let promo = JSON.parse(localStorage.getItem("promo"))||[];
   listaPromo.innerHTML="";
 
   promo.forEach(p=>{
-    let div = document.createElement("div");
-    div.className="card";
-    div.innerText = `${p.data} - ${p.porc}% (R$${p.desconto.toFixed(2)})`;
-    listaPromo.appendChild(div);
+    listaPromo.innerHTML+=`
+    <div class="card">
+    ${p.data} - ${p.porc}% (R$${p.desconto.toFixed(2)})
+    </div>`;
   });
 }
 
+// PEDIDOS (simulado)
+function carregarPedidos(){
+  let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
+
+  listaPedidos.innerHTML="";
+
+  pedidos.forEach((p,i)=>{
+    listaPedidos.innerHTML+=`
+    <div class="card">
+    ${p.nome} - ${p.horario}<br>
+    ${p.sabores.join(", ")}<br>
+    <button onclick="finalizarPedido(${i})">Entregar</button>
+    </div>`;
+  });
+}
+
+function finalizarPedido(i){
+  let pedidos = JSON.parse(localStorage.getItem("pedidos"));
+  pedidos.splice(i,1);
+  localStorage.setItem("pedidos",JSON.stringify(pedidos));
+  carregar();
+}
+
+// INICIAR
 carregar();
-carregarProdutos();
 carregarPromo();
 
 </script>
