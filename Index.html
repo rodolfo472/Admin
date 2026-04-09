@@ -22,6 +22,7 @@ img{border-radius:10px}
 <button onclick="aba('vendas')">💰</button>
 <button onclick="aba('pedidos')">📦</button>
 <button onclick="aba('sabores')">🍧</button>
+<button onclick="aba('pagamentos')">💳</button>
 </div>
 
 <div class="content">
@@ -62,13 +63,34 @@ img{border-radius:10px}
 <div id="listaSabores"></div>
 </div>
 
+<!-- PAGAMENTOS -->
+<div id="pagamentos" class="hidden">
+<h3>💳 Pagamentos</h3>
+
+<input id="valorPagamento" placeholder="Valor (R$)" type="number">
+
+<select id="metodo">
+<option value="pix">PIX</option>
+<option value="dinheiro">Dinheiro</option>
+</select>
+
+<br><br>
+
+<button onclick="gerarPagamento()">Gerar Pagamento</button>
+
+<div id="qrcode" style="margin-top:20px;"></div>
+
+<h4>📜 Histórico</h4>
+<div id="listaPagamentos"></div>
+</div>
+
 </div>
 
 <script>
 
 // TROCAR ABA
 function aba(id){
-  ["vendas","pedidos","sabores"].forEach(x=>{
+  ["vendas","pedidos","sabores","pagamentos"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
@@ -106,9 +128,10 @@ function carregar(){
 
   carregarPedidos();
   carregarSabores();
+  carregarPagamentos();
 }
 
-// PEDIDOS (SITE CLIENTE ENVIA PRA CÁ)
+// PEDIDOS
 function carregarPedidos(){
   let pedidos = JSON.parse(localStorage.getItem("pedidos"))||[];
 
@@ -122,7 +145,7 @@ function carregarPedidos(){
       Horário: ${p.horario}<br>
       Rua: ${p.rua}<br><br>
 
-      <button onclick="entregar(${i})">Marcar como Entregue</button>
+      <button onclick="entregar(${i})">Entregar</button>
     </div>`;
   });
 }
@@ -134,7 +157,7 @@ function entregar(i){
   carregar();
 }
 
-// SABORES (ADICIONAR)
+// SABORES
 function addSabor(){
   let nome = nomeSabor.value;
   let file = foto.files[0];
@@ -156,7 +179,6 @@ function addSabor(){
   if(file) reader.readAsDataURL(file);
 }
 
-// SABORES (CARREGAR + REMOVER)
 function carregarSabores(){
   let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
 
@@ -173,12 +195,82 @@ function carregarSabores(){
   });
 }
 
-// REMOVER SABOR
 function removerSabor(i){
   let sabores = JSON.parse(localStorage.getItem("sabores"));
   sabores.splice(i,1);
   localStorage.setItem("sabores",JSON.stringify(sabores));
   carregarSabores();
+}
+
+// 💳 PAGAMENTOS COM QR CODE
+function gerarPagamento(){
+  let valor = parseFloat(valorPagamento.value);
+
+  if(!valor){
+    alert("Digite um valor!");
+    return;
+  }
+
+  let metodo = metodo.value;
+
+  let pagamentos = JSON.parse(localStorage.getItem("pagamentos"))||[];
+
+  let data = new Date().toLocaleString();
+
+  let pagamento = {
+    valor,
+    metodo,
+    data,
+    dono:"Rodolfo"
+  };
+
+  pagamentos.push(pagamento);
+  localStorage.setItem("pagamentos", JSON.stringify(pagamentos));
+
+  if(metodo === "pix"){
+    let chave = "82993223150";
+    let nome = "RODOLFO";
+    let cidade = "PIRANHAS";
+
+    let payload = `00020126580014BR.GOV.BCB.PIX0136${chave}52040000530398654${valor.toFixed(2)}5802BR5913${nome}6009${cidade}62070503***6304`;
+
+    let qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payload)}`;
+
+    document.getElementById("qrcode").innerHTML = `
+      <h4>📲 Escaneie para pagar</h4>
+      <img src="${qr}">
+      <p>Valor: R$ ${valor.toFixed(2)}</p>
+    `;
+  }
+
+  mostrarComprovante(pagamento);
+  carregarPagamentos();
+}
+
+function mostrarComprovante(p){
+  alert(
+`✅ PAGAMENTO REALIZADO
+
+Valor: R$${p.valor.toFixed(2)}
+Método: ${p.metodo}
+Data: ${p.data}
+
+Recebido por: ${p.dono}`
+  );
+}
+
+function carregarPagamentos(){
+  let pagamentos = JSON.parse(localStorage.getItem("pagamentos"))||[];
+
+  listaPagamentos.innerHTML="";
+
+  pagamentos.forEach(p=>{
+    listaPagamentos.innerHTML+=`
+    <div class="card">
+      R$${p.valor} - ${p.metodo}<br>
+      ${p.data}
+    </div>`;
+  });
 }
 
 // INICIAR
