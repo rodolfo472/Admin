@@ -2,81 +2,30 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Gelatinas 🍧</title>
+<title>Admin Gelatinas 🍧</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  display:flex;
-}
-
-/* MENU LATERAL */
-.sidebar{
-  width:80px;
-  background:#ff6f91;
-  height:100vh;
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.sidebar button{
-  margin:10px 0;
-  padding:10px;
-  width:100%;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-/* ÁREA PRINCIPAL */
-.main{
-  flex:1;
-  display:flex;
-}
-
-/* CONTEÚDO GRANDE */
-.content{
-  flex:1;
-  padding:20px;
-  background:#f5f5f5;
-}
-
-/* CARDS */
-.card{
-  background:white;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px;
-}
-
-/* ESCONDER */
-.hidden{
-  display:none;
-}
-
+body{margin:0;font-family:Arial;display:flex}
+.sidebar{width:90px;background:#ff6f91;height:100vh;padding:10px}
+.sidebar button{display:block;margin:10px 0;width:100%;padding:10px}
+.content{flex:1;padding:15px;background:#f5f5f5}
+.card{background:white;padding:10px;border-radius:10px;margin:10px 0}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<!-- MENU ESQUERDO -->
 <div class="sidebar">
-  <button onclick="abrir('vendas')">💰</button>
-  <button onclick="abrir('pedidos')">📦</button>
-  <button onclick="abrir('promo')">🎁</button>
-  <button onclick="abrir('nao')">🚚</button>
+<button onclick="aba('vendas')">💰</button>
+<button onclick="aba('pedidos')">📦</button>
+<button onclick="aba('sabores')">🍧</button>
 </div>
-
-<!-- ÁREA DIREITA -->
-<div class="main">
 
 <div class="content">
 
-<h2>Gelatinas do Rodolfo 🍧</h2>
+<h2>Admin - Gelatinas 🍧</h2>
 
 <!-- VENDAS -->
 <div id="vendas">
@@ -99,33 +48,25 @@ body{
 <div id="listaPedidos"></div>
 </div>
 
-<!-- PROMO -->
-<div id="promo" class="hidden">
-<h3>Promoções</h3>
+<!-- SABORES -->
+<div id="sabores" class="hidden">
+<h3>🍧 Gelatinas Disponíveis</h3>
 
-<input type="date" id="data">
-<input type="number" id="porc" placeholder="%">
+<input id="nomeSabor" placeholder="Nome do sabor">
+<input type="file" id="foto">
 
-<button onclick="promo()">Criar</button>
+<button onclick="addSabor()">Adicionar</button>
 
-<div id="listaPromo"></div>
-</div>
-
-<!-- NÃO ENTREGUE -->
-<div id="nao" class="hidden">
-<h3>Não Entregues</h3>
-<div id="listaNao"></div>
-</div>
-
+<div id="listaSabores"></div>
 </div>
 
 </div>
 
 <script>
 
-// TROCAR TELA
-function abrir(id){
-  ["vendas","pedidos","promo","nao"].forEach(x=>{
+// trocar aba
+function aba(id){
+  ["vendas","pedidos","sabores"].forEach(x=>{
     document.getElementById(x).classList.add("hidden");
   });
   document.getElementById(id).classList.remove("hidden");
@@ -150,24 +91,17 @@ function salvar(){
 
 function carregar(){
   let vendas = JSON.parse(localStorage.getItem("vendas"))||[];
-
   lista.innerHTML="";
-  listaNao.innerHTML="";
 
-  vendas.forEach((v,i)=>{
+  vendas.forEach(v=>{
     lista.innerHTML+=`
     <div class="card">
-    ${v.nome} - R$${v.valor}<br>
-    Pago: ${v.pago} | Entregue: ${v.entregue}
+    ${v.nome} - R$${v.valor}
     </div>`;
-
-    if(!v.entregue){
-      listaNao.innerHTML+=`
-      <div class="card">${v.nome}</div>`;
-    }
   });
 
   carregarPedidos();
+  carregarSabores();
 }
 
 // PEDIDOS
@@ -179,42 +113,48 @@ function carregarPedidos(){
   pedidos.forEach(p=>{
     listaPedidos.innerHTML+=`
     <div class="card">
-    ${p.nome} - ${p.horario}
+    ${p.nome} - ${p.sabor} - ${p.horario}
     </div>`;
   });
 }
 
-// PROMO
-function promo(){
-  let p = JSON.parse(localStorage.getItem("promo"))||[];
+// SABORES (NOVO)
+function addSabor(){
+  let nome = nomeSabor.value;
+  let file = foto.files[0];
 
-  let desconto = 4*(porc.value/100);
+  let reader = new FileReader();
 
-  p.push({
-    data:data.value,
-    porc:porc.value,
-    desconto
-  });
+  reader.onload = function(){
+    let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
 
-  localStorage.setItem("promo",JSON.stringify(p));
-  carregarPromo();
+    sabores.push({
+      nome,
+      img: reader.result
+    });
+
+    localStorage.setItem("sabores",JSON.stringify(sabores));
+    carregarSabores();
+  }
+
+  if(file) reader.readAsDataURL(file);
 }
 
-function carregarPromo(){
-  let p = JSON.parse(localStorage.getItem("promo"))||[];
+function carregarSabores(){
+  let sabores = JSON.parse(localStorage.getItem("sabores"))||[];
 
-  listaPromo.innerHTML="";
+  listaSabores.innerHTML="";
 
-  p.forEach(x=>{
-    listaPromo.innerHTML+=`
+  sabores.forEach(s=>{
+    listaSabores.innerHTML+=`
     <div class="card">
-    ${x.data} - ${x.porc}% (R$${x.desconto})
+      <img src="${s.img}" width="80"><br>
+      ${s.nome}
     </div>`;
   });
 }
 
 carregar();
-carregarPromo();
 
 </script>
 
